@@ -18,9 +18,12 @@ export default function EditInvoiceForm({
   invoice: InvoiceForm;
   customers: CustomerField[];
 }) {
-  const updateInvoiceWithId = updateInvoice.bind(null, invoice.id);
+  function handleUpdateInvoice(formData: FormData) {
+    // Not `await`-ing the action to keep the type (void | Promise<void>)
+    void updateInvoice(invoice.id, formData);
+  }
   return (
-    <form action={updateInvoiceWithId}>
+    <form action={handleUpdateInvoice}>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
         {/* Customer Name */}
         <div className="mb-4">
