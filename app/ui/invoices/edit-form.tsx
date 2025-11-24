@@ -9,7 +9,8 @@ import {
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { Button } from '@/app/ui/button';
-import { updateInvoice } from '@/app/lib/action';
+import { State, updateInvoice } from '@/app/lib/action';
+import { useActionState } from 'react';
 
 export default function EditInvoiceForm({
   invoice,
@@ -18,12 +19,20 @@ export default function EditInvoiceForm({
   invoice: InvoiceForm;
   customers: CustomerField[];
 }) {
-  function handleUpdateInvoice(formData: FormData) {
-    // Not `await`-ing the action to keep the type (void | Promise<void>)
-    void updateInvoice(invoice.id, formData);
-  }
+  const initialState: State = { message: null, errors: {} };
+  const updateInvoiceWithId = updateInvoice.bind(null, invoice.id);
+  // 你遇到的问题是：updateInvoiceWithId的类型与useActionState期望的action类型不匹配。
+  // updateInvoiceWithId采用(formData: FormData)参数，但useActionState需要(state, formData)或(state)。
+  // 解决办法：包装一下，使其签名符合useActionState的要求。
+  const [state, formAction] = useActionState(
+    async (prevState: State, formData: FormData) => {
+      // 调用 updateInvoiceWithId，返回和 useActionState 期望的 state 结构
+      return await updateInvoiceWithId(formData);
+    },
+    initialState
+  );
   return (
-    <form action={handleUpdateInvoice}>
+    <form action={formAction}>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
         {/* Customer Name */}
         <div className="mb-4">
